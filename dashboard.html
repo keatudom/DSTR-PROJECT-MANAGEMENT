@@ -223,18 +223,32 @@ async function callAPI(action, payload={}) {
   if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
     return demoData(action);
   }
+  if (action === 'getAll') {
+    return new Promise((resolve) => {
+      const cbName = 'cb_' + Date.now();
+      window[cbName] = (data) => {
+        delete window[cbName];
+        document.getElementById('jsonp_script')?.remove();
+        resolve(data);
+      };
+      const s = document.createElement('script');
+      s.id = 'jsonp_script';
+      s.src = APPS_SCRIPT_URL + '?callback=' + cbName + '&action=getAll&t=' + Date.now();
+      s.onerror = () => { resolve(demoData(action)); };
+      document.head.appendChild(s);
+    });
+  }
   try {
     const res = await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
-      mode: 'cors',
+      mode: 'no-cors',
       headers: {'Content-Type': 'text/plain;charset=utf-8'},
       body: JSON.stringify({action, ...payload})
     });
-    return await res.json();
+    return {ok: true};
   } catch (e) {
     console.error(e);
-    showToast('เชื่อมต่อไม่ได้ - ใช้ข้อมูล demo');
-    return demoData(action);
+    return {ok: false};
   }
 }
 
