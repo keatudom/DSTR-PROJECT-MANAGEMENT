@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bow House · Project Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans Thai','Segoe UI',sans-serif;background:#F5F6FA;color:#1F2937;line-height:1.5;padding:16px;max-width:1200px;margin:0 auto}
+.hdr{background:linear-gradient(135deg,#1F3864 0%,#2E75B6 100%);color:#fff;padding:20px 24px;border-radius:16px;margin-bottom:16px;box-shadow:0 4px 12px rgba(31,56,100,0.15)}
+.hdr-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.hdr h1{font-size:20px;font-weight:600;margin-bottom:4px}
+.hdr-sub{font-size:13px;opacity:.9}
+.status-pill{background:rgba(255,255,255,0.2);padding:6px 14px;border-radius:99px;font-size:12px;font-weight:500;backdrop-filter:blur(8px)}
+.refresh-btn{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit}
+.refresh-btn:hover{background:rgba(255,255,255,0.25)}
+.refresh-btn:active{transform:scale(0.97)}
+.spin{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:#fff;padding:14px 16px;border-radius:12px;border:1px solid #E5E7EB}
+.kpi-l{font-size:11px;color:#6B7280;font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.kpi-v{font-size:22px;font-weight:600;color:#111827}
+.kpi-s{font-size:11px;margin-top:4px;font-weight:500}
+.kpi.warn .kpi-v{color:#BA7517}
+.kpi.ok .kpi-v{color:#1D9E75}
+.kpi.bad .kpi-v{color:#E24B4A}
+
+.card{background:#fff;border-radius:12px;border:1px solid #E5E7EB;padding:16px;margin-bottom:16px}
+.card-title{font-size:13px;font-weight:600;color:#6B7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+
+.prog-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.prog-row:last-child{margin-bottom:0}
+.prog-l{font-size:12px;color:#4B5563;min-width:120px;font-weight:500}
+.prog-track{flex:1;height:10px;background:#F3F4F6;border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;border-radius:99px;transition:width .5s ease}
+.prog-pct{font-size:12px;font-weight:600;min-width:50px;text-align:right}
+
+.ngwd-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ngwd-c{padding:12px;border-radius:10px;border:1px solid #E5E7EB;background:#FAFBFC}
+.ngwd-t{font-size:11px;font-weight:600;color:#6B7280;text-transform:uppercase}
+.ngwd-a{font-size:18px;font-weight:600;margin-top:6px}
+.ngwd-p{font-size:11px;color:#6B7280;margin-top:2px}
+.ngwd-s{font-size:10px;padding:3px 8px;border-radius:99px;display:inline-block;margin-top:8px;font-weight:500}
+.s-paid{background:#D1FAE5;color:#065F46}
+.s-active{background:#FEF3C7;color:#92400E}
+.s-pending{background:#F3F4F6;color:#6B7280}
+
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tab{padding:8px 14px;border-radius:8px;background:#fff;border:1px solid #E5E7EB;font-size:12px;font-weight:500;color:#6B7280;cursor:pointer;font-family:inherit}
+.tab.on{background:#1F3864;color:#fff;border-color:#1F3864}
+.tab:hover:not(.on){background:#F9FAFB}
+
+.zone-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.zt{padding:5px 12px;border-radius:99px;background:#fff;border:1px solid #E5E7EB;font-size:11px;color:#6B7280;cursor:pointer;font-family:inherit}
+.zt.on{background:#E6F1FB;color:#0C447C;border-color:#85B7EB}
+
+.ff-list{display:flex;flex-direction:column;gap:6px}
+.ff-c{background:#fff;border:1px solid #E5E7EB;border-radius:10px;overflow:hidden}
+.ff-h{padding:10px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.ff-h:hover{background:#F9FAFB}
+.ff-code{font-size:11px;font-weight:600;padding:3px 8px;border-radius:99px;background:#E6F1FB;color:#0C447C;flex-shrink:0;min-width:46px;text-align:center}
+.ff-name{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ff-area{font-size:11px;color:#6B7280;flex-shrink:0;display:none}
+.ff-prog{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.ff-prog-mini{width:60px;height:6px;background:#F3F4F6;border-radius:99px;overflow:hidden}
+.ff-prog-mini-f{height:100%;background:#1D9E75;border-radius:99px;transition:width .4s}
+.ff-prog-t{font-size:11px;color:#4B5563;min-width:38px;text-align:right;font-weight:500}
+.chev{font-size:14px;color:#9CA3AF;transition:transform .2s;flex-shrink:0}
+.chev.open{transform:rotate(180deg)}
+
+.task-body{display:none;border-top:1px solid #E5E7EB;background:#F9FAFB;padding:10px 14px}
+.task-body.open{display:block}
+.phase-grp{margin-bottom:10px}
+.phase-grp:last-child{margin-bottom:0}
+.phase-h{font-size:10px;font-weight:600;color:#6B7280;text-transform:uppercase;margin-bottom:6px;letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.phase-dot{width:8px;height:8px;border-radius:50%}
+.p1{background:#1F3864}.p2{background:#378ADD}.p3{background:#1D9E75}.p4{background:#BA7517}
+.t-row{display:flex;align-items:center;gap:8px;padding:6px 10px;background:#fff;border-radius:6px;margin-bottom:3px;border:1px solid #E5E7EB;cursor:pointer;transition:all .12s}
+.t-row:hover{border-color:#D1D5DB;background:#FAFBFC}
+.t-row.done{background:#F0FDF4;border-color:#BBF7D0}
+.t-row.done .t-name{text-decoration:line-through;color:#9CA3AF}
+.t-chk{width:18px;height:18px;border-radius:4px;border:1.5px solid #D1D5DB;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:11px;transition:all .12s}
+.t-chk.on{background:#1D9E75;border-color:#1D9E75}
+.t-name{font-size:12px;flex:1}
+.t-meta{font-size:10px;color:#9CA3AF;flex-shrink:0}
+
+.risk-list{display:flex;flex-direction:column;gap:8px}
+.r-c{display:flex;align-items:flex-start;gap:10px;padding:10px;background:#FAFBFC;border-radius:8px;border:1px solid #E5E7EB}
+.r-sev{width:4px;border-radius:2px;flex-shrink:0;align-self:stretch}
+.sev-h{background:#E24B4A}.sev-m{background:#F4B942}.sev-l{background:#1D9E75}
+.r-body{flex:1}
+.r-title{font-size:12px;font-weight:500;color:#111827}
+.r-desc{font-size:11px;color:#6B7280;margin-top:2px}
+.r-tag{font-size:10px;padding:2px 7px;border-radius:99px;background:#fff;border:1px solid #E5E7EB;color:#6B7280;flex-shrink:0}
+
+.tl-wrap{overflow-x:auto;padding-bottom:4px}
+.tl{display:grid;grid-template-columns:130px repeat(20,minmax(28px,1fr));gap:1px;min-width:680px}
+.tl-h{font-size:9px;color:#6B7280;text-align:center;padding:4px 0;font-weight:600;background:#F9FAFB;border-radius:3px}
+.tl-h-m{font-size:10px;font-weight:600;color:#374151}
+.tl-name{font-size:11px;color:#4B5563;padding:4px 6px;display:flex;align-items:center;background:#F9FAFB;border-radius:3px}
+.tl-cell{height:20px;border-radius:3px;background:transparent}
+.tl-p1{background:#1F3864}.tl-p2{background:#378ADD}.tl-p3{background:#1D9E75}.tl-p4{background:#BA7517}
+.tl-today{box-shadow:inset 0 0 0 2px #E24B4A}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:#6B7280}
+.legend-d{width:10px;height:10px;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:4px}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1F2937;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,0.15);opacity:0;transition:opacity .2s;pointer-events:none;z-index:1000}
+.toast.show{opacity:1}
+
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:#6B7280;font-size:13px;gap:8px}
+.loading-spin{width:16px;height:16px;border:2px solid #E5E7EB;border-top-color:#1F3864;border-radius:50%;animation:spin 0.8s linear infinite}
+
+@media (max-width:680px){
+  body{padding:10px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .ngwd-grid{grid-template-columns:repeat(2,1fr)}
+  .hdr h1{font-size:17px}
+  .kpi-v{font-size:18px}
+  .ff-name{font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <div>
+      <h1>Bow House · Project Dashboard</h1>
+      <div class="hdr-sub" id="hdrSub">คุณอสณบรีย อิสสระเสรี · QT-690400007</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="status-pill" id="projStatus">⏳ Loading…</span>
+      <button class="refresh-btn" onclick="loadData(true)" id="refreshBtn">
+        <span id="refreshIcon">↻</span> Refresh
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="kpi-grid">
+  <div class="kpi"><div class="kpi-l">วันที่เหลือ</div><div class="kpi-v" id="kDays">–</div><div class="kpi-s" id="kDaysS"></div></div>
+  <div class="kpi"><div class="kpi-l">ความคืบหน้า</div><div class="kpi-v" id="kProg">–</div><div class="kpi-s" id="kProgS"></div></div>
+  <div class="kpi ok"><div class="kpi-l">เบิกแล้ว (฿)</div><div class="kpi-v" id="kPaid">–</div><div class="kpi-s" id="kPaidS"></div></div>
+  <div class="kpi"><div class="kpi-l">มูลค่าโครงการ (฿)</div><div class="kpi-v" id="kTotal">–</div><div class="kpi-s">ไม่รวม VAT</div></div>
+</div>
+
+<div class="card">
+  <div class="card-title">ภาพรวมความคืบหน้าตามงวด</div>
+  <div id="progBars"><div class="loading"><div class="loading-spin"></div>กำลังโหลด...</div></div>
+</div>
+
+<div class="card">
+  <div class="card-title">สรุปงวดงานและการเบิก</div>
+  <div class="ngwd-grid" id="ngwdGrid"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">Timeline (เม.ย. – ส.ค. 2569)</div>
+  <div class="tl-wrap" id="timeline"></div>
+  <div class="legend">
+    <span><span class="legend-d" style="background:#1F3864"></span>งวด 1</span>
+    <span><span class="legend-d" style="background:#378ADD"></span>งวด 2 - วัสดุ+โครง</span>
+    <span><span class="legend-d" style="background:#1D9E75"></span>งวด 3 - ติดตั้ง</span>
+    <span><span class="legend-d" style="background:#BA7517"></span>งวด 4 - ส่งมอบ</span>
+    <span><span class="legend-d" style="border:2px solid #E24B4A;background:transparent"></span>วันนี้</span>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Checklist รายชิ้น</div>
+  <div class="zone-tabs" id="zoneTabs">
+    <button class="zt on" onclick="setZone('all',this)">ทุก Zone</button>
+    <button class="zt" onclick="setZone('Zone 1',this)">Zone 1</button>
+    <button class="zt" onclick="setZone('Zone 2',this)">Zone 2</button>
+    <button class="zt" onclick="setZone('Zone 3',this)">Zone 3</button>
+    <button class="zt" onclick="setZone('Zone 4',this)">Zone 4</button>
+  </div>
+  <div class="ff-list" id="ffList"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">Risk Management</div>
+  <div class="risk-list" id="riskList"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================
+// CONFIG: เปลี่ยน URL นี้เป็น Apps Script Web App URL ของคุณ
+const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+// ============================================
+
+const state = {
+  data: null,
+  zone: 'all',
+  openFFs: new Set()
+};
+
+const PROJECT_START = new Date('2026-04-09');
+const PROJECT_END = new Date('2026-08-07');
+
+function daysBetween(a, b) {
+  return Math.round((b - a) / (1000*60*60*24));
+}
+
+function fmt(n) {
+  return new Intl.NumberFormat('en-US').format(Math.round(n));
+}
+
+function showToast(msg, ms=2000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+async function callAPI(action, payload={}) {
+  if (APPS_SCRIPT_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+    return demoData(action);
+  }
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'cors',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify({action, ...payload})
+    });
+    return await res.json();
+  } catch (e) {
+    console.error(e);
+    showToast('เชื่อมต่อไม่ได้ - ใช้ข้อมูล demo');
+    return demoData(action);
+  }
+}
+
+function demoData(action) {
+  if (action === 'getAll') {
+    return DEMO_DATA;
+  }
+  return {ok: true};
+}
+
+const DEMO_DATA = {
+  ffs: [
+    {code:"F-01",name:"ตู้วางรองเท้าหน้าประตู",area:"โถงทางเข้า",zone:"Zone 1",price:69642.70,status:"In Progress",risk:"Low"},
+    {code:"F-15",name:"ตู้สีดำข้างตู้วางรองเท้า",area:"โถงทางเข้า",zone:"Zone 1",price:37018.72,status:"In Progress",risk:"Low"},
+    {code:"F-16",name:"ผนังกรุทางเข้าบ้านชั้น 1",area:"โถงทางเข้า",zone:"Zone 1",price:34794.46,status:"In Progress",risk:"Low"},
+    {code:"F-02",name:"ตู้โชว์ TV",area:"ห้องนั่งเล่น",zone:"Zone 2",price:173448.58,status:"In Progress",risk:"Medium"},
+    {code:"F-04",name:"ตู้ครัวซิ้ง",area:"ห้องทานอาหาร",zone:"Zone 2",price:104909.18,status:"Not Started",risk:"Medium"},
+    {code:"F-05",name:"โต๊ะข้างบันได",area:"ห้องทานอาหาร",zone:"Zone 2",price:55861.25,status:"In Progress",risk:"Low"},
+    {code:"F-17",name:"ฝ้าคิ้วห้องโถงเหนือโต๊ะกินข้าว",area:"ห้องทานอาหาร",zone:"Zone 2",price:120659.01,status:"In Progress",risk:"Low"},
+    {code:"F-03",name:"ตู้ห้องทำงาน",area:"ห้องทำงาน",zone:"Zone 3",price:191128.57,status:"In Progress",risk:"Medium"},
+    {code:"F-09",name:"ผนังกั้นห้องนอนลูกสาว",area:"ห้องนอนลูกสาว",zone:"Zone 3",price:77050.98,status:"In Progress",risk:"Low"},
+    {code:"F-10",name:"ตู้เสื้อผ้าห้องนอนลูก",area:"ห้องนอนลูกสาว",zone:"Zone 3",price:188384.62,status:"In Progress",risk:"Medium"},
+    {code:"F-11",name:"ตู้สูง Master Bedroom",area:"Master Bedroom",zone:"Zone 4",price:102851.15,status:"Not Started",risk:"Medium"},
+    {code:"F-14",name:"ผนังกรุปลายเตียง",area:"Master Bedroom",zone:"Zone 4",price:173124.86,status:"Not Started",risk:"Medium"},
+    {code:"F-18",name:"ผนังประตูเลื่อน",area:"Master Bedroom",zone:"Zone 4",price:98027.45,status:"Not Started",risk:"Medium"},
+    {code:"F-19",name:"ตู้เสื้อผ้าคุณแม่",area:"Mother's Bedroom",zone:"Zone 4",price:134264.26,status:"Not Started",risk:"High"},
+    {code:"F-20",name:"ตู้เสื้อผ้าห้องแขก ตัว L",area:"Guest Bedroom",zone:"Zone 4",price:152854.05,status:"Not Started",risk:"High"}
+  ],
+  tasks: buildDemoTasks(),
+  payments: [
+    {id:"PAY-001",milestone:"งวด 1",sub:"มัดจำรอบแรก",zone:"All",pct:36.4,amount:617000,status:"Paid",paidDate:"2026-03-09"},
+    {id:"PAY-002",milestone:"งวด 1",sub:"มัดจำรอบสอง (ส่วนเพิ่ม)",zone:"All",pct:13.6,amount:230500,status:"Paid",paidDate:"2026-04-09"},
+    {id:"PAY-003",milestone:"งวด 2",sub:"Zone 1",zone:"Zone 1",pct:2.0,amount:33900,status:"Pending"},
+    {id:"PAY-004",milestone:"งวด 2",sub:"Zone 2",zone:"Zone 2",pct:6.0,amount:101700,status:"Pending"},
+    {id:"PAY-005",milestone:"งวด 2",sub:"Zone 3",zone:"Zone 3",pct:6.0,amount:101700,status:"Pending"},
+    {id:"PAY-006",milestone:"งวด 2",sub:"Zone 4",zone:"Zone 4",pct:8.5,amount:144075,status:"Pending"},
+    {id:"PAY-007",milestone:"งวด 3",sub:"Zone 1",zone:"Zone 1",pct:2.0,amount:33900,status:"Pending"},
+    {id:"PAY-008",milestone:"งวด 3",sub:"Zone 2",zone:"Zone 2",pct:6.0,amount:101700,status:"Pending"},
+    {id:"PAY-009",milestone:"งวด 3",sub:"Zone 3",zone:"Zone 3",pct:6.0,amount:101700,status:"Pending"},
+    {id:"PAY-010",milestone:"งวด 3",sub:"Zone 4",zone:"Zone 4",pct:8.5,amount:144075,status:"Pending"},
+    {id:"PAY-011",milestone:"งวด 4",sub:"ส่งมอบ",zone:"All",pct:5.0,amount:84750,status:"Pending"}
+  ],
+  risks: [
+    {id:"R-001",cat:"Schedule",desc:"Timeline พื้นที่บีบ - เหลือเวลาน้อย ต้องเสร็จงวด 2-4 ใน 86 วัน",sev:"Medium",status:"Open"},
+    {id:"R-002",cat:"Supply Chain",desc:"F-19, F-20 รอโครงตู้ Modular จากโรงงาน lead time ไม่แน่นอน",sev:"High",status:"Open"},
+    {id:"R-003",cat:"Coordination",desc:"F-02, F-03, F-11 ต้องเดินไฟ+กรุโครงก่อน ถ้า M&E ล่าช้ากระทบ",sev:"High",status:"Open"},
+    {id:"R-004",cat:"Coordination",desc:"F-04 ตู้ครัวซิ้ง รอผู้รับเหมาประปา/ท่อน้ำทิ้งก่อน",sev:"Medium",status:"Open"},
+    {id:"R-005",cat:"Material",desc:"หินเทียม F-03, F-04, F-05 ต้องสั่งล่วงหน้า 2-3 สัปดาห์",sev:"Medium",status:"Open"},
+    {id:"R-006",cat:"Cash Flow",desc:"งวด 2 มีเงื่อนไขครบทั้ง 4 Zone ถ้า zone ใดล่าช้าเบิกไม่ได้",sev:"Medium",status:"Open"}
+  ]
+};
+
+function buildDemoTasks() {
+  const taskTemplates = {
+    "F-01":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["ตัดซอยไม้ HMR","ปิดแผ่นลามิเนต","ประกอบโครงตู้ HMR"],p3:["ติดตั้งโครงตู้","ติดตั้งหน้าบาน","ติดตั้งคิ้วบัว","พ่นสี","ติดตั้งฟิตติ้ง","Edgingband"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-15":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["ซอยตัดไม้ HMR","ปิดแผ่นลามิเนต","ประกอบโครงตู้","ผลิตลิ้นชัก"],p3:["ติดตั้งโครงตู้","ติดตั้งลิ้นชัก","ติดตั้งคิ้วบัว","พ่นสี","ติดตั้งฟิตติ้ง","Edgingband"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-16":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["กรุโครงไม้เนื้อแข็ง","ติดตั้งแผ่น HMR"],p3:["ติดตั้งคิ้วบัว","พ่นสี","ติดตั้งราวจับเหล็ก","Edgingband"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-02":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["งานเดินสายไฟฟ้า","กรุโครงไม้","ซอยตัดไม้ HMR","เซาะร่องรางไฟ","ปิดแผ่นลามิเนต","ประกอบโครงตู้"],p3:["ติดตั้งโครงตู้","ติดตั้งหน้าบาน","ติดตั้งเฟรมอลู","คิ้วบัว","พ่นสี","DISPLAY","งานไฟ","ฟิตติ้ง","Edgingband"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-04":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["เดินสายไฟฟ้า","เดินประปา","ทำโครงตู้"],p3:["ติดตั้งคิ้วบัว","พ่นสี","ติดตั้งหินเทียม","ติดตั้งซิ้ง","ติดตั้งกระจกเงา","เก็บรอยต่อ","ตรวจกระจก"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-05":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["ซอยตัดไม้ HMR","ปิดลามิเนต","ประกอบโครงตู้","ผลิตลิ้นชัก"],p3:["ติดตั้งโครงตู้","ติดตั้งขาตู้","ติดตั้งลิ้นชัก","คิ้วบัว","พ่นสี","หินเทียม","ฟิตติ้ง","Edgingband"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-17":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["เดินไฟ","กรุโครงไม้","ทำซัพพอร์ต","ติดตั้ง HMR","เก็บรอยต่อ"],p3:["คิ้วบัว","พ่นสี","ติดตั้งไฟ","สวิตซ์","Edgingband"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-03":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["เดินไฟ","กรุโครงไม้","ซอยตัดไม้","ปิดลามิเนต","ประกอบโครงตู้"],p3:["ติดตั้งโครงตู้","ติดตั้งหน้าบาน","คิ้วบัว","พ่นสี","โครงโต๊ะทำงาน","ติดตั้งหินเทียม","ติดตั้งไฟ","ฟิตติ้ง","Edgingband"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-09":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["ทำโครงผนัง","กรุแผ่น HMR","เว้นช่องกระจก"],p3:["คิ้วบัว","พ่นสี","ติดตั้งกระจก","เก็บรอยต่อ","ตรวจกระจก"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-10":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["เดินไฟ","กรุโครงไม้","ซอยตัดไม้","เซาะร่องไฟ","ประกอบโครงตู้"],p3:["ติดตั้งโครงตู้","ผลิตลิ้นชัก","ติดตั้งลิ้นชัก","พ่นสี","ติดตั้งไฟ","เฟรมอลู","ลิ้นชัก IKEA","ราวแขวน","ฟิตติ้ง"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-11":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["เดินไฟ","กรุโครงไม้","ซอยตัดไม้","เซาะร่องไฟ","ปิดลามิเนต","ประกอบโครงตู้"],p3:["ติดตั้งโครงตู้","ติดตั้งหน้าบาน","คิ้วบัว","พ่นสี","บุผ้าหน้าบาน","เก็บขอบผ้า","ติดตั้งไฟ","ราวแขวน","ลิ้นชัก","ฟิตติ้ง"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-14":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["เดินไฟอัจฉริยะ","กรุโครงไม้","ขึ้นโครงผนัง HMR"],p3:["คิ้วบัว","พ่นสี HMR","ติดตั้งผ้าบุ","ติดตั้งอลูมิเนียม","เดินไฟอัจฉริยะ"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-18":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["กรุโครงไม้","ทำโครงผนัง","เว้นช่องกระจก","เสริมโครงรางประตู"],p3:["ติดตั้งราง","ผลิตประตูเลื่อน","ติดตั้งประตู","ติดตั้ง HMR","คิ้วบัว","พ่นสี","ติดตั้งกระจก","เก็บรอยต่อ","ตรวจกระจก","ฟิตติ้งประตู","Edgingband"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-19":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["เดินไฟ","รับโครงตู้จากโรงงาน","ประกอบโครงตู้"],p3:["ประกอบหน้าบาน","ติดตั้งหน้าบาน","ติดตั้งลิ้นชัก","คิ้วบัว","พ่นสี","ติดตั้งไฟ","ติดตั้งกระจก","ราวแขวน","ฟิตติ้ง","Edgingband"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]},
+    "F-20":{p1:["สั่งซื้อวัสดุ","วัดระยะหน้างานจริง"],p2:["รับโครงตู้","ประกอบโครงตู้"],p3:["ประกอบหน้าบาน","ติดตั้งหน้าบาน","ลิ้นชัก","คิ้วบัว","พ่นสี","ราวแขวน","ฟิตติ้ง","Edgingband"],p4:["DEFECT INSPECTION","DEFECT CORRECTION","TEST RUN","Cleaning","ส่งมอบงาน","ตรวจรับงาน","ส่งมอบ FINAL"]}
+  };
+  const tasks = [];
+  let id = 1;
+  // Demo: บางอันเสร็จแล้ว
+  const doneSet = new Set([
+    "F-01-p1-0","F-01-p1-1","F-01-p2-0",
+    "F-15-p1-0","F-15-p1-1","F-15-p2-0",
+    "F-16-p1-0","F-16-p1-1","F-16-p2-0",
+    "F-02-p1-0","F-02-p1-1","F-02-p2-2",
+    "F-03-p1-0","F-03-p1-1","F-03-p2-2",
+    "F-05-p1-0","F-05-p1-1","F-05-p2-0",
+    "F-09-p1-0","F-09-p1-1","F-09-p2-0",
+    "F-10-p1-0","F-10-p1-1","F-10-p2-1","F-10-p2-2",
+    "F-17-p1-0","F-17-p1-1","F-17-p2-1"
+  ]);
+  Object.entries(taskTemplates).forEach(([ffCode, phases]) => {
+    Object.entries(phases).forEach(([phase, items]) => {
+      items.forEach((name, idx) => {
+        const key = `${ffCode}-${phase}-${idx}`;
+        tasks.push({
+          id:`T${String(id).padStart(4,'0')}`,
+          ffCode, phase, name,
+          status: doneSet.has(key) ? "Done" : "Not Started"
+        });
+        id++;
+      });
+    });
+  });
+  return tasks;
+}
+
+function getZoneOfFF(ffCode) {
+  const ff = state.data.ffs.find(f => f.code === ffCode);
+  return ff ? ff.zone : '';
+}
+
+function calcOverallProgress() {
+  if (!state.data) return 0;
+  const total = state.data.tasks.length;
+  const done = state.data.tasks.filter(t => t.status === 'Done').length;
+  return total ? Math.round(done/total*100) : 0;
+}
+
+function calcPhaseProgress(phase) {
+  if (!state.data) return 0;
+  const phaseTasks = state.data.tasks.filter(t => t.phase === phase);
+  const done = phaseTasks.filter(t => t.status === 'Done').length;
+  return phaseTasks.length ? Math.round(done/phaseTasks.length*100) : 0;
+}
+
+function calcFFProgress(ffCode) {
+  const tasks = state.data.tasks.filter(t => t.ffCode === ffCode);
+  const done = tasks.filter(t => t.status === 'Done').length;
+  return {done, total: tasks.length, pct: tasks.length ? Math.round(done/tasks.length*100) : 0};
+}
+
+function renderHeader() {
+  const today = new Date();
+  const daysLeft = Math.max(0, daysBetween(today, PROJECT_END));
+  const totalDays = daysBetween(PROJECT_START, PROJECT_END);
+  const elapsed = daysBetween(PROJECT_START, today);
+  const progress = calcOverallProgress();
+  
+  const paid = state.data.payments.filter(p => p.status === 'Paid').reduce((s,p) => s + p.amount, 0);
+  const total = state.data.payments.reduce((s,p) => s + p.amount, 0);
+  
+  document.getElementById('kDays').textContent = daysLeft;
+  document.getElementById('kDaysS').textContent = `จาก ${totalDays} วัน · ผ่านมา ${elapsed} วัน`;
+  document.getElementById('kProg').textContent = progress + '%';
+  document.getElementById('kProgS').textContent = `${state.data.tasks.filter(t=>t.status==='Done').length} / ${state.data.tasks.length} task`;
+  document.getElementById('kPaid').textContent = fmt(paid);
+  document.getElementById('kPaidS').textContent = `${Math.round(paid/total*100)}% ของทั้งโปรเจกต์`;
+  document.getElementById('kTotal').textContent = fmt(total);
+
+  // Status
+  const expectedProgress = (elapsed/totalDays) * 100;
+  const status = document.getElementById('projStatus');
+  if (progress >= expectedProgress - 5) {
+    status.textContent = '✓ On Track';
+    status.style.background = 'rgba(16,185,129,0.3)';
+  } else if (progress >= expectedProgress - 15) {
+    status.textContent = '⚠ At Risk';
+    status.style.background = 'rgba(245,158,11,0.3)';
+  } else {
+    status.textContent = '🔴 Delayed';
+    status.style.background = 'rgba(239,68,68,0.3)';
+  }
+}
+
+function renderProgress() {
+  const container = document.getElementById('progBars');
+  const phases = [
+    {key:'งวด 1', label:'งวด 1 · มัดจำ', color:'#1F3864', paid: state.data.payments.filter(p=>p.milestone==='งวด 1' && p.status==='Paid').length === state.data.payments.filter(p=>p.milestone==='งวด 1').length},
+    {key:'งวด 2', label:'งวด 2 · วัสดุ+โครง', color:'#378ADD'},
+    {key:'งวด 3', label:'งวด 3 · ติดตั้ง', color:'#1D9E75'},
+    {key:'งวด 4', label:'งวด 4 · ส่งมอบ', color:'#BA7517'}
+  ];
+  
+  let html = '';
+  phases.forEach(p => {
+    let pct;
+    if (p.key === 'งวด 1') {
+      pct = p.paid ? 100 : 0;
+    } else {
+      pct = calcPhaseProgress(p.key === 'งวด 2' ? 'p2' : p.key === 'งวด 3' ? 'p3' : 'p4');
+    }
+    html += `<div class="prog-row">
+      <span class="prog-l">${p.label}</span>
+      <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${p.color}"></div></div>
+      <span class="prog-pct" style="color:${p.color}">${pct === 100 && p.key === 'งวด 1' ? '✓ ชำระแล้ว' : pct + '%'}</span>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderNgwdGrid() {
+  const container = document.getElementById('ngwdGrid');
+  const milestones = [
+    {label:'งวด 1', sub:'มัดจำสั่งผลิต', pct:'50%', color:'#1F3864'},
+    {label:'งวด 2', sub:'วัสดุเข้า+โครง', pct:'22.5%', color:'#378ADD'},
+    {label:'งวด 3', sub:'ติดตั้งเฟอร์นิเจอร์', pct:'22.5%', color:'#1D9E75'},
+    {label:'งวด 4', sub:'ส่งมอบงาน', pct:'5%', color:'#BA7517'}
+  ];
+  
+  let html = '';
+  milestones.forEach(m => {
+    const items = state.data.payments.filter(p => p.milestone === m.label);
+    const total = items.reduce((s,i) => s+i.amount, 0);
+    const allPaid = items.length > 0 && items.every(i => i.status === 'Paid');
+    const anyActive = items.some(i => i.status === 'Eligible' || i.status === 'Invoiced');
+    
+    let statusClass = 's-pending', statusText = 'รอดำเนินการ';
+    if (allPaid) { statusClass = 's-paid'; statusText = 'ชำระแล้ว ✓'; }
+    else if (anyActive) { statusClass = 's-active'; statusText = 'กำลังดำเนินการ'; }
+    
+    html += `<div class="ngwd-c">
+      <div class="ngwd-t">${m.label}</div>
+      <div class="ngwd-a" style="color:${m.color}">${fmt(total)} ฿</div>
+      <div class="ngwd-p">${m.pct} · ${m.sub}</div>
+      <span class="ngwd-s ${statusClass}">${statusText}</span>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderTimeline() {
+  const container = document.getElementById('timeline');
+  const months = ['เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.'];
+  
+  // FF plan: ระยะเวลาแต่ละ phase ในสัปดาห์ที่
+  const plan = {
+    "F-01":[[1,1,2],[2,3,5],[3,9,11],[4,18,19]],
+    "F-15":[[1,1,2],[2,3,5],[3,9,11],[4,18,19]],
+    "F-16":[[1,1,2],[2,3,5],[3,9,11],[4,18,19]],
+    "F-02":[[1,1,2],[2,5,8],[3,11,13],[4,18,19]],
+    "F-04":[[1,1,2],[2,5,8],[3,11,13],[4,18,19]],
+    "F-05":[[1,1,2],[2,5,8],[3,11,13],[4,18,19]],
+    "F-17":[[1,1,2],[2,5,8],[3,11,13],[4,18,19]],
+    "F-03":[[1,1,2],[2,7,10],[3,13,15],[4,18,19]],
+    "F-09":[[1,1,2],[2,7,10],[3,13,15],[4,18,19]],
+    "F-10":[[1,1,2],[2,7,10],[3,13,15],[4,18,19]],
+    "F-11":[[1,1,2],[2,9,12],[3,14,16],[4,18,19]],
+    "F-14":[[1,1,2],[2,9,12],[3,14,16],[4,18,19]],
+    "F-18":[[1,1,2],[2,9,12],[3,14,16],[4,18,19]],
+    "F-19":[[1,1,2],[2,9,12],[3,14,16],[4,18,19]],
+    "F-20":[[1,1,2],[2,9,12],[3,14,16],[4,18,19]]
+  };
+  
+  // วันนี้ตรงสัปดาห์ที่เท่าไหร่
+  const today = new Date();
+  const daysSinceStart = daysBetween(PROJECT_START, today);
+  const currentWeek = Math.max(1, Math.min(20, Math.floor(daysSinceStart/7) + 1));
+  
+  let html = '<div class="tl">';
+  // Row 1: month headers
+  html += '<div></div>';
+  months.forEach(m => {
+    html += `<div class="tl-h tl-h-m" style="grid-column:span 4">${m}</div>`;
+  });
+  // Row 2: week headers
+  html += '<div></div>';
+  for (let i = 0; i < 5; i++) {
+    for (let w = 1; w <= 4; w++) {
+      html += `<div class="tl-h">W${w}</div>`;
+    }
+  }
+  
+  // FF rows
+  state.data.ffs.forEach(ff => {
+    html += `<div class="tl-name">${ff.code} · ${ff.zone.replace('Zone ','Z')}</div>`;
+    const ffPlan = plan[ff.code] || [];
+    const cellMap = {};
+    ffPlan.forEach(([phase, start, end]) => {
+      for (let w = start; w <= end; w++) cellMap[w] = phase;
+    });
+    for (let w = 1; w <= 20; w++) {
+      const phase = cellMap[w];
+      const cls = phase ? `tl-p${phase}` : '';
+      const todayClass = w === currentWeek ? ' tl-today' : '';
+      html += `<div class="tl-cell ${cls}${todayClass}"></div>`;
+    }
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderFFList() {
+  const container = document.getElementById('ffList');
+  const filtered = state.zone === 'all' ? state.data.ffs : state.data.ffs.filter(f => f.zone === state.zone);
+  
+  let html = '';
+  filtered.forEach(ff => {
+    const prog = calcFFProgress(ff.code);
+    const isOpen = state.openFFs.has(ff.code);
+    html += `<div class="ff-c">
+      <div class="ff-h" onclick="toggleFF('${ff.code}')">
+        <span class="ff-code">${ff.code}</span>
+        <span class="ff-name">${ff.name}</span>
+        <div class="ff-prog">
+          <div class="ff-prog-mini"><div class="ff-prog-mini-f" style="width:${prog.pct}%"></div></div>
+          <span class="ff-prog-t">${prog.done}/${prog.total}</span>
+        </div>
+        <i class="chev ${isOpen?'open':''}">▾</i>
+      </div>
+      <div class="task-body${isOpen?' open':''}" id="body-${ff.code}">
+        ${isOpen ? renderTasksForFF(ff.code) : ''}
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderTasksForFF(ffCode) {
+  const tasks = state.data.tasks.filter(t => t.ffCode === ffCode);
+  const phases = {p1:'งวด 1 · Pre-Production', p2:'งวด 2 · วัสดุ+โครง', p3:'งวด 3 · ติดตั้ง', p4:'งวด 4 · ส่งมอบ'};
+  
+  let html = '';
+  Object.entries(phases).forEach(([pkey, plabel]) => {
+    const ptasks = tasks.filter(t => t.phase === pkey);
+    if (!ptasks.length) return;
+    html += `<div class="phase-grp">
+      <div class="phase-h"><span class="phase-dot ${pkey}"></span>${plabel}</div>`;
+    ptasks.forEach(t => {
+      const done = t.status === 'Done';
+      html += `<div class="t-row ${done?'done':''}" onclick="toggleTask('${t.id}')">
+        <div class="t-chk ${done?'on':''}">${done?'✓':''}</div>
+        <span class="t-name">${t.name}</span>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  return html;
+}
+
+function renderRisks() {
+  const container = document.getElementById('riskList');
+  let html = '';
+  state.data.risks.forEach(r => {
+    const sevClass = r.sev === 'High' ? 'sev-h' : r.sev === 'Medium' ? 'sev-m' : 'sev-l';
+    html += `<div class="r-c">
+      <div class="r-sev ${sevClass}"></div>
+      <div class="r-body">
+        <div class="r-title">${r.cat}: ${r.desc.split('·')[0]}</div>
+        <div class="r-desc">${r.desc}</div>
+      </div>
+      <span class="r-tag">${r.sev}</span>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function toggleFF(code) {
+  if (state.openFFs.has(code)) state.openFFs.delete(code);
+  else state.openFFs.add(code);
+  renderFFList();
+}
+
+async function toggleTask(taskId) {
+  const task = state.data.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  const newStatus = task.status === 'Done' ? 'Not Started' : 'Done';
+  task.status = newStatus;
+  renderFFList();
+  renderHeader();
+  renderProgress();
+  
+  // Sync to backend
+  showToast('กำลังบันทึก...');
+  const result = await callAPI('updateTask', {taskId, status: newStatus});
+  if (result.ok) {
+    showToast(newStatus === 'Done' ? '✓ บันทึกแล้ว' : '✓ ยกเลิกแล้ว');
+  } else {
+    showToast('❌ บันทึกไม่สำเร็จ');
+    task.status = newStatus === 'Done' ? 'Not Started' : 'Done';
+    renderFFList();
+  }
+}
+
+function setZone(zone, el) {
+  state.zone = zone;
+  document.querySelectorAll('.zt').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  renderFFList();
+}
+
+async function loadData(showSpin) {
+  if (showSpin) document.getElementById('refreshIcon').classList.add('spin');
+  const data = await callAPI('getAll');
+  state.data = data;
+  renderHeader();
+  renderProgress();
+  renderNgwdGrid();
+  renderTimeline();
+  renderFFList();
+  renderRisks();
+  if (showSpin) {
+    setTimeout(() => {
+      document.getElementById('refreshIcon').classList.remove('spin');
+      showToast('✓ อัปเดตแล้ว');
+    }, 300);
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
