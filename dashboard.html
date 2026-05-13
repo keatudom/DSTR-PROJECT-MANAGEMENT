@@ -238,18 +238,20 @@ async function callAPI(action, payload={}) {
       document.head.appendChild(s);
     });
   }
-  try {
-    const res = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'text/plain;charset=utf-8'},
-      body: JSON.stringify({action, ...payload})
-    });
-    return {ok: true};
-  } catch (e) {
-    console.error(e);
-    return {ok: false};
-  }
+  return new Promise((resolve) => {
+    const cbName = 'cb_' + Date.now();
+    window[cbName] = (data) => {
+      delete window[cbName];
+      document.getElementById('jsonp_upd')?.remove();
+      resolve(data);
+    };
+    const params = encodeURIComponent(JSON.stringify({action, ...payload}));
+    const s = document.createElement('script');
+    s.id = 'jsonp_upd';
+    s.src = APPS_SCRIPT_URL + '?callback=' + cbName + '&body=' + params + '&t=' + Date.now();
+    s.onerror = () => { resolve({ok: false}); };
+    document.head.appendChild(s);
+  });
 }
 
 function demoData(action) {
@@ -526,7 +528,7 @@ function renderTimeline() {
 
 function renderFFList() {
   const container = document.getElementById('ffList');
-  const filtered = state.zone === 'all' ? state.data.ffs : state.data.ffs.filter(f => f.zone === state.zone);
+  const filtered = (state.zone === 'all' ? state.data.ffs : state.data.ffs.filter(f => f.zone === state.zone)).slice().sort((a,b) => parseInt(a.code.replace("F-","")) - parseInt(b.code.replace("F-","")));
   
   let html = '';
   filtered.forEach(ff => {
